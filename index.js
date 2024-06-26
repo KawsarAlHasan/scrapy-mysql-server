@@ -1,11 +1,24 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const mySqlPool = require("./config/db");
-// const bodyParser = require("body-parser");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const app = express();
 dotenv.config();
 
-// app.use(bodyParser.json());
+const globalCorsOptions = {
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Content-Type,Authorization",
+};
+
+app.use(cors(globalCorsOptions));
+app.options("*", cors(globalCorsOptions));
+
+// Alternatively, you can allow all origins by simply calling app.use(cors());
+app.use(cors());
+
+app.use(bodyParser.json());
 app.use(express.json());
 
 // routes
