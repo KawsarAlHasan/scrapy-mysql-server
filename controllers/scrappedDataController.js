@@ -2,20 +2,51 @@ const db = require("../config/db");
 
 exports.getAllscrappedData = async (req, res) => {
   try {
-    let { search, reviewdate, sort, review_star, page, limit } = req.query;
+    let {
+      search,
+      reviewer_name,
+      reviewdate,
+
+      avg_rating,
+      Source_Name,
+      Source_Website,
+      Company_category,
+      sort,
+      review_star,
+      page,
+      limit,
+    } = req.query;
 
     // Default values
-    search = search || "";
     sort = sort || "id";
     review_star = review_star || "";
     page = parseInt(page) || 1;
     limit = parseInt(limit) || 100;
     const offset = (page - 1) * limit;
 
+    if (
+      !search &&
+      !reviewer_name &&
+      !Source_Name &&
+      !Source_Website &&
+      !Company_category &&
+      !avg_rating
+    ) {
+      search = search || "";
+      Source_Name = Source_Name || "";
+    }
+
     // Construct the main query
     let query =
-      "SELECT * FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ?)";
-    let params = [`%${search}%`, `%${search}%`];
+      "SELECT * FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ?  OR avg_rating LIKE ? OR Source_Name LIKE ? OR Source_Website LIKE ? OR Company_category LIKE ?)";
+    let params = [
+      `%${search}%`,
+      `%${reviewer_name}%`,
+      `%${avg_rating}%`,
+      `%${Source_Name}%`,
+      `%${Source_Website}%`,
+      `%${Company_category}%`,
+    ];
 
     // Add reviewdate condition if provided
     if (reviewdate) {
@@ -41,15 +72,22 @@ exports.getAllscrappedData = async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(404).send({
-        success: false,
+        success: true,
         message: "No Scrapped Data found",
       });
     }
 
     // Construct the total count query
     let totalQuery =
-      "SELECT COUNT(*) as count FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ?)";
-    let totalParams = [`%${search}%`, `%${search}%`];
+      "SELECT COUNT(*) as count FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ? OR avg_rating LIKE ? OR Source_Name LIKE ?  OR Source_Website LIKE ? )";
+    let totalParams = [
+      `%${search}%`,
+      `%${reviewer_name}%`,
+      `%${avg_rating}%`,
+      `%${Source_Name}%`,
+      `%${Source_Website}%`,
+      `%${Company_category}%`,
+    ];
 
     if (reviewdate) {
       totalQuery += " AND review_date = ?";
