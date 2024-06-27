@@ -6,7 +6,6 @@ exports.getAllscrappedData = async (req, res) => {
       search,
       reviewer_name,
       reviewdate,
-
       avg_rating,
       Source_Name,
       Source_Website,
@@ -24,34 +23,35 @@ exports.getAllscrappedData = async (req, res) => {
     limit = parseInt(limit) || 100;
     const offset = (page - 1) * limit;
 
-    if (
-      !search &&
-      !reviewer_name &&
-      !Source_Name &&
-      !Source_Website &&
-      !Company_category &&
-      !avg_rating
-    ) {
+    if (!search && !reviewer_name) {
       search = search || "";
-      Source_Name = Source_Name || "";
     }
 
     // Construct the main query
     let query =
-      "SELECT * FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ?  OR avg_rating LIKE ? OR Source_Name LIKE ? OR Source_Website LIKE ? OR Company_category LIKE ?)";
-    let params = [
-      `%${search}%`,
-      `%${reviewer_name}%`,
-      `%${avg_rating}%`,
-      `%${Source_Name}%`,
-      `%${Source_Website}%`,
-      `%${Company_category}%`,
-    ];
+      "SELECT * FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ? )";
+    let params = [`%${search}%`, `%${reviewer_name}%`];
 
     // Add reviewdate condition if provided
     if (reviewdate) {
       query += " AND review_date = ?";
       params.push(reviewdate);
+    }
+    if (avg_rating) {
+      query += " AND avg_rating = ?";
+      params.push(avg_rating);
+    }
+    if (Source_Name) {
+      query += " AND Source_Name = ?";
+      params.push(Source_Name);
+    }
+    if (Source_Website) {
+      query += " AND Source_Website = ?";
+      params.push(Source_Website);
+    }
+    if (Company_category) {
+      query += " AND Company_category = ?";
+      params.push(Company_category);
     }
 
     // Add review_star condition if provided
@@ -79,15 +79,8 @@ exports.getAllscrappedData = async (req, res) => {
 
     // Construct the total count query
     let totalQuery =
-      "SELECT COUNT(*) as count FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ? OR avg_rating LIKE ? OR Source_Name LIKE ?  OR Source_Website LIKE ? )";
-    let totalParams = [
-      `%${search}%`,
-      `%${reviewer_name}%`,
-      `%${avg_rating}%`,
-      `%${Source_Name}%`,
-      `%${Source_Website}%`,
-      `%${Company_category}%`,
-    ];
+      "SELECT COUNT(*) as count FROM Scrapped_Data WHERE (Company_name LIKE ? OR reviewer_name LIKE ? )";
+    let totalParams = [`%${search}%`, `%${reviewer_name}%`];
 
     if (reviewdate) {
       totalQuery += " AND review_date = ?";
@@ -97,6 +90,23 @@ exports.getAllscrappedData = async (req, res) => {
     if (review_star) {
       totalQuery += " AND review_star = ?";
       totalParams.push(review_star);
+    }
+
+    if (avg_rating) {
+      totalQuery += " AND avg_rating = ?";
+      totalParams.push(avg_rating);
+    }
+    if (Source_Name) {
+      totalQuery += " AND Source_Name = ?";
+      totalParams.push(Source_Name);
+    }
+    if (Source_Website) {
+      totalQuery += " AND Source_Website = ?";
+      totalParams.push(Source_Website);
+    }
+    if (Company_category) {
+      totalQuery += " AND Company_category = ?";
+      totalParams.push(Company_category);
     }
 
     // Execute the total count query
@@ -137,10 +147,8 @@ exports.getScrappedDataById = async (req, res) => {
         message: "No Scrapped  found",
       });
     }
-    res.status(200).send({
-      success: true,
-      data: data[0],
-    });
+    const scrapped = data[0];
+    res.status(200).send(scrapped);
   } catch (error) {
     res.status(500).send({
       success: false,
